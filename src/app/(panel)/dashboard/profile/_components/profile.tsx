@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react'
-import { useProfileForm } from './profile-form'
+import { ProfileFormData, useProfileForm } from './profile-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
@@ -35,13 +35,35 @@ import { ArrowRight } from 'lucide-react'
 
 import imgTest from '../../../../../../public/foto1.png'
 import { cn } from '@/lib/utils'
+import { Prisma } from '@/src/generated/prisma/client'
+import { updateProfile } from './_actions/update-profile'
+import { toast } from 'sonner'
+import { formatPhone } from '@/src/utils/formatPhone'
 
-export function ProfileContent() {
 
-  const [selectedHours, setSelectedHours] = useState<string[]>([])
+
+type UserWithSubscription = Prisma.UserGetPayload<{
+    include:{
+        subscription: true
+    }
+}>
+
+interface ProfileContentProps {
+    user: UserWithSubscription;
+}
+
+export function ProfileContent({ user }: ProfileContentProps) {
+  const [selectedHours, setSelectedHours] = useState<string[]>(user.times ?? [])
   const [dialogIsOpen, setDialogIsOpen] = useState(false);
 
-  const form = useProfileForm();
+  const form = useProfileForm({
+    name: user.name,
+    address: user.address,
+    phone: user.phone,
+    status: user.status,
+    timeZone: user.timeZone
+  });
+
 
 
   function generateTimeSlots(): string[] {
@@ -76,10 +98,28 @@ export function ProfileContent() {
   zone.startsWith("America/Boa_Vista")
 );
 
+  async function onSubmit(values:ProfileFormData){
+
+    const response = await updateProfile({
+        name: values.name,
+        address: values.address,
+        phone: values.phone,
+        status: values.status === "active" ? true : false,
+        timeZone: values.timeZone,
+        times: selectedHours || []
+    })
+
+    if(response.error){
+        toast.error(response.error)
+        return;
+    }
+    toast.success(response.data)
+  }
+
   return (
     <div className='mx-auto'>
       <Form {...form}>
-        <form>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <Card>
             <CardHeader>
               <CardTitle>Meu Perfil</CardTitle>
@@ -88,7 +128,7 @@ export function ProfileContent() {
               <div className='flex justify-center'>
                 <div className='bg-gray-200 relative h-40 w-40 rounded-full overflow-hidden'>
                   <Image
-                    src={imgTest}
+                    src={user.image ? user.image : imgTest}
                     alt="Foto da clinica"
                     fill
                     className='object-cover'
@@ -145,7 +185,11 @@ export function ProfileContent() {
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder='Digite o telefone...'
+                          placeholder='(67) 99912-3456'
+                          onChange={ (e) => {
+                            const formattedValue = formatPhone(e.target.value)
+                            field.onChange(formattedValue)
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
