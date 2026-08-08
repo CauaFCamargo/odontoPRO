@@ -13,9 +13,9 @@ import { Input } from '@/components/ui/input'
 import { formatPhone } from '@/src/utils/formatPhone'
 import { DateTimePicker } from "./date-picker"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ScheduleTimeList } from './schedule-time-list'
 import { createNewAppointment } from '../_actions/create-appointment'
 import { toast } from 'sonner'
+import { ScheduleTimeList } from './schedule-time-list'
 
 type UserWithServiceAndSubscription = Prisma.UserGetPayload<{
   include: {
@@ -95,7 +95,6 @@ export function ScheduleContent({ clinic }: ScheduleContentProps) {
           setSelectedTime("");
         }
 
-        
 
       })
     }
@@ -239,6 +238,7 @@ export function ScheduleContent({ clinic }: ScheduleContentProps) {
                       onChange={(date) => {
                         if (date) {
                           field.onChange(date)
+                          setSelectedTime("")
                         }
                       }}
                     />
@@ -255,7 +255,10 @@ export function ScheduleContent({ clinic }: ScheduleContentProps) {
                 <FormItem className="">
                   <FormLabel className="font-semibold">Selecione o serviço:</FormLabel>
                   <FormControl>
-                    <Select onValueChange={field.onChange}>
+                    <Select onValueChange={(value) =>{
+                      field.onChange(value)
+                      setSelectedTime("")
+                    }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione um serviço" />
                       </SelectTrigger>
