@@ -54,7 +54,14 @@ export function ServicesList( {services }: ServicesListProps){
     }
 
     return(
-        <Dialog open={isDialogOpen}  onOpenChange={setisDialogOpen}>
+        <Dialog open={isDialogOpen}  
+        onOpenChange={(open) => {
+            setisDialogOpen(open);
+
+            if(!open) {
+                setEditingService(null);
+            }
+        }}>
             <section className="mx-auto">
                 
 
