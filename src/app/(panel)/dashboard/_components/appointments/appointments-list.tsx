@@ -45,7 +45,10 @@ export function AppointmentsList({times}: AppointmentsListProps){
             
             return json
             //aqui vamos buscar da nossa rota
-        }
+        },
+        staleTime: 20000,
+        refetchInterval: 30000,
+
     })
 
     const occupantMap: Record<string, AppointmentWithService> = {
