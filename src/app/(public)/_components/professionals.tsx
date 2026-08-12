@@ -10,9 +10,14 @@ import Image from "next/image";
 import fotoImg from "../../../../public/foto1.png"
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { User } from "@/src/generated/prisma/client";
+
+interface ProfessionalsProps{
+    professionals: User[]
+}
 
 
-export function Professionals(){
+export function Professionals({ professionals }: ProfessionalsProps){
     return(
         <section className="bg-gray-50 py-16">
             
@@ -22,12 +27,14 @@ export function Professionals(){
             </h2>
         
             <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="overflow-hidden p-0 gap-0">
+                
+                {professionals.map((clinic) =>(
+                    <Card className="overflow-hidden p-0 gap-0 hover:shadow-lg duration-300" key={clinic.id}>
                     <CardContent className="p-0">
                         <div>
                             <div className="relative h-48">
                                 <Image
-                                    src={fotoImg}
+                                    src={clinic.image ?? fotoImg}
                                     alt="Foto da clinica"
                                     fill
                                     className="object-cover"
@@ -39,10 +46,10 @@ export function Professionals(){
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="font-semibold">
-                                        Clinica centro
+                                        {clinic.name}
                                     </h3>
                                     <p className="text-sm text-gray-500">
-                                        Rua x, centro, Campo Grande - MS
+                                        {clinic.address ?? "Endereço não informado."}
                                     </p>
                                 </div>
 
@@ -50,7 +57,8 @@ export function Professionals(){
                             </div>
 
                             <Link
-                            href="/clinica/123"
+                            href={`/clinica/${clinic.id}`}
+                            target="_blank"
                             className="w-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center py-2 rounded-md text-sm md:text-base font-medium"
                             >
                                 Agendar horário
@@ -59,6 +67,8 @@ export function Professionals(){
                         </div>
                     </CardContent>
                 </Card>
+                ))}
+
             </section>
         
         </div>
