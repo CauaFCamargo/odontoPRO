@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx';
 import {
@@ -28,6 +28,20 @@ export function SidebarDashboard({ children }: { children: React.ReactNode }) {
 
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // fecha o menu mobile (Sheet) quando a tela vira desktop (>= 768px),
+  // evitando ficar com dois menus abertos ao mesmo tempo
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 768) {
+        setIsSheetOpen(false);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className='flex min-h-screen w-full'>
@@ -154,7 +168,7 @@ export function SidebarDashboard({ children }: { children: React.ReactNode }) {
         <header
           className='md:hidden flex items-center justify-between border-b px-2 md:px-6 h-14 z-10 sticky top-0 bg-white'
         >
-          <Sheet>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <div className='flex items-center gap-4'>
               <SheetTrigger asChild>
                 <Button variant="outline"
