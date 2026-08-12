@@ -1,13 +1,23 @@
 "use client"
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Prisma } from "@/src/generated/prisma/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { X, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation"
+import { cancelAppointment } from "../../_actions/cancel-appointment";
+import { toast } from "sonner";
+import { Dialog,DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
+import { DialogAppointment } from "./dialog-appointment";
+import { ButtonPickerAppointment } from "./button-date";
 
-type AppointmentWithService = Prisma.AppointmentGetPayload<{
+
+
+export type AppointmentWithService = Prisma.AppointmentGetPayload<{
     include:{
         service: true,
     }
@@ -21,8 +31,11 @@ export function AppointmentsList({times}: AppointmentsListProps){
 
     const searchParams= useSearchParams();
     const date = searchParams.get("date")
+    const queryClient = useQueryClient()
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [detailAppointment, setDetailAppointment] = useState<AppointmentWithService | null>(null)
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, refetch } = useQuery({
         queryKey: ["get-appointments", date],
         queryFn: async () => {
 
@@ -75,14 +88,28 @@ export function AppointmentsList({times}: AppointmentsListProps){
         }
     }
 
+    async function HandleCancelAppointment(appointmentId: string){
+        const response = await cancelAppointment({ appointmentId: appointmentId})
+
+        if(response.error){
+            toast.error(response.error);
+            return;
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["get-appointments"]})
+        await refetch()
+        toast.success(response.data);
+    }
+
     return(
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl md:text-2xl font-bold">
                     Agendamentos
                 </CardTitle>
 
-                <button>SELECIONAR DATA</button>
+                <ButtonPickerAppointment/>
             </CardHeader>
 
             <CardContent>
@@ -94,18 +121,40 @@ export function AppointmentsList({times}: AppointmentsListProps){
 
                             const occupant = occupantMap[slot]
 
-                            if(occupant){
-                                return(
-                                <div
-                                key={slot}
-                                className="flex items-center py-2 border-t last:border-b"
-                            >
-                                <div className="w-16 text-sm font-semibold">{slot}</div>
-                                <div className="flex-1 text-sm">
-                                    <div className="font-semibold">{occupant.name}</div>
-                                    <div className="text-sm text-gray-500">{occupant.phone}</div>
-                                </div>
-                            </div>
+                                if(occupant){
+                                    return(
+                                        <div
+                                        key={slot}
+                                        className="flex items-center py-2 border-t last:border-b"
+                                    >
+                                        <div className="w-16 text-sm font-semibold">{slot}</div>
+                                        <div className="flex-1 text-sm">
+                                            <div className="font-semibold">{occupant.name}</div>
+                                            <div className="text-sm text-gray-500">{occupant.phone}</div>
+                                        </div>
+
+                                        <div className="ml-auto">
+                                            <div className="flex gap-4">
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {setDetailAppointment(occupant)}}
+                                            >
+                                                <Eye className="w-4 h-4"/>
+                                            </Button>
+                                            </DialogTrigger>
+
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => HandleCancelAppointment(occupant.id)}
+                                            >
+                                                <X className="w-4 h-4"/>
+                                            </Button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )
                             }
 
@@ -125,5 +174,9 @@ export function AppointmentsList({times}: AppointmentsListProps){
                 </ScrollArea>
             </CardContent>
         </Card>
+
+        <DialogAppointment
+         appointment={detailAppointment}/>
+        </Dialog>
     )
 }
