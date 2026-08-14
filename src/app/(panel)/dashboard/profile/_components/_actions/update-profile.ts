@@ -51,6 +51,8 @@ export async function updateProfile(formData: FormSchema){
     })
 
     revalidatePath("/dashboard/profile")
+    // a home lista as clinicas, entao tambem precisa ser atualizada
+    revalidatePath("/")
 
     return {
         data:"Clinica atualizada com sucesso"

@@ -33,6 +33,8 @@ export async function updateProfileAvatar({ avatarUrl }: { avatarUrl: string}) {
         })
 
         revalidatePath("/dashboard/profile")
+        // a home mostra a foto da clinica, entao tambem precisa ser atualizada
+        revalidatePath("/")
 
         return{
             error: "Imagem alterada com sucesso!"
