@@ -5,8 +5,12 @@ import { Subscription } from "@/src/generated/prisma/client";
 import { Session } from "next-auth";
 import { getPlan } from "./get-plans";
 import { PLANS } from "../plans";
+import { checkSubscriptionExpired } from "./checkSubscriptionExpired";
+import { ResultPermissionProp } from "./canPermission";
 
-export async function canCreateService(subscription: Subscription | null, session: Session){
+
+
+export async function canCreateService(subscription: Subscription | null, session: Session): Promise<ResultPermissionProp>{
 
     try {
       const serviceCount = await prisma.service.count({
@@ -27,7 +31,17 @@ export async function canCreateService(subscription: Subscription | null, sessio
             }
       }
 
+      const checkUserLimit = await checkSubscriptionExpired(session)
+
+      return checkUserLimit
+
     } catch (error) {
+        return{
+              hasPermission: false,
+              planId: "EXPIRED",
+              expired: false,
+              plan: null,
+            }
         
     }
 
