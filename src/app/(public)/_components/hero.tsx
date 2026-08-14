@@ -17,7 +17,7 @@ export function Hero(){
 
                     </p>
                     <Button className="bg-emerald-500 hover:bg-emerald-400 w-fit px-6 font-semibold">
-                        Ecnontre uma clinica
+                        Encontre uma clínica
                     </Button>
 
                 </article>
