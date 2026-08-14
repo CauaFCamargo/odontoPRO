@@ -9,6 +9,11 @@ import Google from "next-auth/providers/google"
 export const { handlers, signIn, signOut, auth } = NextAuth({
     adapter: PrismaAdapter(prisma) as Adapter,
     trustHost: true,
-    providers: [GitHub, Google]
+    providers: [
+        GitHub,
+        // O Google sempre verifica o email, entao e seguro vincular ao
+        // usuario que ja existe com o mesmo email (ex: cadastrado via GitHub).
+        Google({ allowDangerousEmailAccountLinking: true })
+    ]
 })
     
